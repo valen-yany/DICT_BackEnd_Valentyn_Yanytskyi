@@ -1,34 +1,37 @@
 <?php
 session_start();
 
-function file_write($arr, $filename) {
-    $jsonString = json_encode($arr);
-    $fileStream = fopen ($filename , 'a');
-    fwrite ( $fileStream, $jsonString ."\n");
-    fclose ($fileStream );
-}
-
 function text_to_html($text) {
     return htmlspecialchars(stripslashes(trim($text)));
 }
+function db_write($aComment, $db){
+    $query = "INSERT INTO comments(email, name, text, created_at) VALUES(
+'".$aComment ['email']."',
+'".$aComment ['name']."',
+'".$aComment ['text']."',
+'\"NOW()\"'
+)";
+    mysqli_query($db , $query);
+    mysqli_close($db);
+}
 
-function comment_read($file) {
+function comment_read($db) {
     $comments = [];
-    if( file_exists ($file)) {
-        $fileStream = fopen ( $file , "r");
-
-        while (! feof ($fileStream )) {
-            $jsonString = fgets ($fileStream);
-            $array = json_decode ( $jsonString , true);
-            if ( empty ($array)) break ;
-            $comments[$array['name']] = $array['text'];
-        }
-        fclose ($fileStream );
+    $result = mysqli_query($db,"SELECT name, text FROM comments ORDER BY created_at DESC");
+    $id = 0;
+    while ($row = $result->fetch_assoc()) {
+        $comments[$row['name']] = $row['text'];
     }
+    mysqli_close ($db);
     return $comments;
 }
 
-$guestbook = "guestbook.csv";
+$aConfig = require_once 'config.php';
+$db = mysqli_connect ($aConfig['host'],
+    $aConfig ['user'],
+    $aConfig ['pass'],
+    $aConfig ['name']
+);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $name = $text = "";
@@ -38,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $name = text_to_html($_POST["name"]);
         $text = text_to_html($_POST["text"]);
         $record = ['name' => $name, 'email' => $email, 'text' => $text];
-        file_write($record, $guestbook);
+        db_write($record, $db);
         header("Location: " . $_SERVER['PHP_SELF']);
         exit();
     }
@@ -89,9 +92,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="row">
                 <div class="col-sm-6">
                     <?php
-                    $data = comment_read($guestbook);
+                    $data = comment_read($db);
                     foreach ($data as $name => $comment) {
-                        echo "<p><span style=\"color:blue\">$name</span> залишив відгук:"."<br>".$comment."</p>";
+                        echo "<p><span style=\"color:blue\">$name</span> залишив відгук:" . "<br>" . $comment . "</p>";
                     }
                     ?>
                 </div>
