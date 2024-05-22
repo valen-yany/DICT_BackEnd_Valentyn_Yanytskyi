@@ -1,40 +1,55 @@
 <?php
 // TODO 1: PREPARING ENVIRONMENT: 1) session 2) functions
+
+// 1. namespace
+namespace guestbook;
+define('__ROOT__', dirname(dirname(__FILE__)));
+
 session_start();
 
+// 2. use
+
+// 3. require_once
+require_once 'vendor/autoload.php';
+
+require_once 'Controllers/HomeController.php';
+require_once 'Controllers/RegisterController.php';
+require_once 'Controllers/LoginController.php';
+require_once 'Controllers/AdminController.php';
+require_once 'Controllers/LogoutController.php';
+require_once 'Controllers/GuestbookController.php';
+
 // TODO 2: ROUTING
+switch ($_SERVER['REQUEST_URI']) {
+    case '/':
+        dump($_SERVER['REQUEST_URI']);
+        $controllerClassName = 'HomeController';
+        break;
+    case '/register':
+        dump($_SERVER['REQUEST_URI']);
+        $controllerClassName = 'RegisterController';
+        break;
+    case '/login':
+        dump($_SERVER['REQUEST_URI']);
+        $controllerClassName = 'LoginController';
+        break;
+    case '/logout':
+        dump($_SERVER['REQUEST_URI']);
+        $controllerClassName = 'LogoutController';
+        break;
+    case '/admin':
+        dump($_SERVER['REQUEST_URI']);
+        $controllerClassName = 'AdminController';
+        break;
+    case '/guestbook':
+        dump($_SERVER['REQUEST_URI']);
+        $controllerClassName = 'GuestbookController';
+        break;
+    default:
+        dump($_SERVER['REQUEST_URI']);
+        die;
+}
 
-// TODO 3: CODE by REQUEST METHODS (ACTIONS) GET, POST, etc. (handle data from request): 1) validate 2) working with data source 3) transforming data
-
-// TODO 4: RENDER: 1) view (html) 2) data (from php)
-
-?>
-
-<!DOCTYPE html>
-<html>
-
-<?php require_once 'sectionHead.php' ?>
-
-<body>
-
-<div class="container">
-
-    <!-- navbar menu -->
-    <?php require_once 'sectionNavbar.php' ?>
-    <br>
-
-    <!-- guestbook section -->
-    <div class="card card-primary">
-        <div class="card-header bg-primary text-light">
-            Home page
-        </div>
-        <div class="card-body">
-
-            <!-- TODO: render php data   -->
-
-        </div>
-    </div>
-</div>
-
-</body>
-</html>
+$controllerClassName = "guestbook\Controllers\\$controllerClassName";
+$controller = new $controllerClassName();
+$controller->execute();
